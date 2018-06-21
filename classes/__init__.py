@@ -1,0 +1,1 @@
+from classes.registration import RegisterFrom
