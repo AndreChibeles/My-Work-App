@@ -50,21 +50,45 @@ def register():
         username = form.username.data
         password = form.password.data
 
-        #Create cursor
-        cur = mysql.connection.cursor()
+        if check_name(username):
+            app.logger.info('%s exists', username)
+            error = "User already exists"
+            return render_template('registration/register.html', form=form, error=error)
+        else:
+            app.logger.info('User does not exist existe')
 
-        cur.execute("INSERT INTO users(name, email, username, password, users_date) VALUES(%s, %s, %s, %s, CURRENT_DATE())", (name, email, username, password))
+            #Create cursor
+            cur = mysql.connection.cursor()
 
-        #Commit to DB
-        mysql.connection.commit()
+            #Execute the Query
+            cur.execute("INSERT INTO users(name, email, username, password, users_date) VALUES(%s, %s, %s, %s, CURRENT_DATE())", (name, email, username, password))
 
-        #Close connection
+            #Commit to DB
+            mysql.connection.commit()
+
+            #Close connection
+            cur.close()
+
+            flash('You are now registered and can log in', 'success')
+
+            return redirect(url_for('index'))
+    return render_template('registration/register.html', form=form)
+
+def check_name(username):
+
+    cur = mysql.connection.cursor()
+
+    #Get user by username
+    result = cur.execute("SELECT * FROM users WHERE username=%s", [username])
+    app.logger.info('Entrei no checkname')
+    if result>0:
         cur.close()
+        return True
+    else:
+        cur.close()
+        return False
 
-        flash('You are now registered and can log in', 'success')
 
-        return redirect(url_for('index'))
-    return render_template('registration/register.html', form=form) 
 
 #User Login
 @app.route('/login', methods=['GET', 'POST'])
